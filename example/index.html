@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, height=device-height, minimum-scale=1.0, initial-scale=1.0, user-scalable=0">
+    <title>Example</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- webpack generated -->
+    <link rel="stylesheet" href="index.css">
+    <script src="index.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<div id="log-panel">
+    <button onclick="showState()">getState</button>
+    <pre id="log"></pre>
+</div>
+<script>
+  const {init} = ReactDragComponent
+  const {renderExample, getState} = init(document.querySelector('#root'))
+  renderExample(getState())
+  window.DEBUG = {renderExample, getState}
+
+  function showState () {
+    document.querySelector('#log').innerHTML = JSON.stringify(getState(), null, ' ')
+  }
+</script>
+</body>
+</html>
