@@ -4,7 +4,7 @@ import { TabTreeContext } from '../../../source'
 import { Tab, TabComponent } from './Tab'
 
 import LocalClassName from './tab-tree-root.pcss'
-const CSS_TAB_TREE = LocalClassName['tab-tree-root']
+const CSS_TAB_TREE_ROOT = LocalClassName['tab-tree-root']
 
 class TabTreeRootComponent extends Component {
   static propTypes = {
@@ -81,7 +81,7 @@ class TabTreeRootComponent extends Component {
     }
 
     // console.log('[RENDER] TabTreeComponent ###################################', canExpand)
-    return <div ref={this.setElementRef} className={`${CSS_TAB_TREE} RIGHT-PANEL flex-container-column FILL`}>
+    return <div ref={this.setElementRef} className={`${CSS_TAB_TREE_ROOT} RIGHT-PANEL flex-container-column FILL`}>
       <div className="bar">
         {showExpand && <button onClick={() => this.tabOperation.doRecursiveExpand(isAllRootCollapsed)}>{isAllRootCollapsed ? 'ExpandAll' : 'CollapseAll' }</button>}
         <button onClick={() => this.tabOperation.doAddTab({id: linkMap[selectTabId].parent})}>AddNew</button>
@@ -92,7 +92,7 @@ class TabTreeRootComponent extends Component {
   }
 }
 
-const TabTreeRoot = TabTreeContext.createTabTreeConnector(TabTreeRootComponent)
+const TabTreeRoot = TabTreeContext.createTabTreeRootConnector(TabTreeRootComponent)
 
 export {
   TabTreeRoot

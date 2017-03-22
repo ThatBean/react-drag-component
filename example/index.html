@@ -10,20 +10,31 @@
     <script src="index.js"></script>
 </head>
 <body>
-<div id="root"></div>
-<div id="log-panel">
-    <button onclick="showState()">getState</button>
-    <pre id="log"></pre>
+<div class="panel horizontal">
+    <div id="root-tab-tree" class="preview"></div>
+    <div class="log">
+        <button id="button-tab-tree">getTabTreeState</button>
+        <pre id="log-tab-tree"></pre>
+    </div>
+</div>
+<div class="panel vertical">
+    <div id="root-tab-list" class="preview"></div>
+    <div class="log">
+        <button id="button-tab-list">getTabListState</button>
+        <pre id="log-tab-list"></pre>
+    </div>
 </div>
 <script>
-  const {init} = ReactDragComponent
-  const {renderExample, getState} = init(document.querySelector('#root'))
-  renderExample(getState())
-  window.DEBUG = {renderExample, getState}
-
-  function showState () {
-    document.querySelector('#log').innerHTML = JSON.stringify(getState(), null, ' ')
+  function wireElement ({ renderExample, getState }, buttonElement, logElement) {
+    buttonElement.addEventListener('click', () => { logElement.innerHTML = JSON.stringify(getState(), null, ' ') })
+    renderExample(getState())
   }
+
+  const { init } = ReactDragComponent
+  const { tabTree, tabList } = init(document.querySelector('#root-tab-tree'), document.querySelector('#root-tab-list'))
+  wireElement(tabTree, document.querySelector('#button-tab-tree'), document.querySelector('#log-tab-tree'))
+  wireElement(tabList, document.querySelector('#button-tab-list'), document.querySelector('#log-tab-list'))
+  window.DEBUG = { tabTree, tabList }
 </script>
 </body>
 </html>

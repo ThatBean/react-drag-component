@@ -4,7 +4,6 @@ import { TabTreeContext } from '../../../source'
 import { TabTreeRoot } from './TabTreeRoot'
 
 function TabTree (props) {
-  console.log('[RENDER] TabTree ###################################')
   return <TabTreeContext.Provider store={props.tabTreeContextStore}>
     <TabTreeRoot {...props} />
   </TabTreeContext.Provider>

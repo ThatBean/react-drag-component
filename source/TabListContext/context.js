@@ -5,7 +5,7 @@ import {
   ProviderScheme,
   ActionCreatorMap,
   reducerSelectCancel,
-  reducePreviewTabList,
+  reducePreviewTabList
 } from './contextState'
 
 const EVENT_INTENT_TYPE = {
@@ -13,7 +13,7 @@ const EVENT_INTENT_TYPE = {
   APPLY: 'APPLY'
 }
 
-const STORE_NAME = '@@TREE_LAYER_STORE'
+const STORE_NAME = '@@TAB_LIST_STORE'
 
 const CASE_TYPE = {
   PREVIEW_START: 'PREVIEW_START',
@@ -41,13 +41,12 @@ const actionProcessorMap = {
   [CASE_TYPE.PREVIEW_START]: (action, state, emitIntent) => {
     const { eventControlState } = action.eventState
     const componentTab = state.componentTabList.find((component) => component.getWrappedRef().divElement.contains(eventControlState.elementOrigin))
-    if (!componentTab) return state
-    const { linkMap } = componentTab.props.data
-    if (linkMap[ componentTab.props.id ].isLock) return state
-    // console.log(CASE_TYPE.PREVIEW_START, componentTab.props.id)
-    state = { ...state, hoverTabId: componentTab.props.id }
-    state = reducePreviewTabList(state, eventControlState)
-    emitIntent(EVENT_INTENT_TYPE.PREVIEW, state)
+    if (componentTab.props.tab.isLock) return state
+    if (componentTab) {
+      state = { ...state, hoverTab: componentTab.props.tab }
+      state = reducePreviewTabList(state, eventControlState)
+      emitIntent(EVENT_INTENT_TYPE.PREVIEW, state)
+    }
     return state
   },
   [CASE_TYPE.PREVIEW_UPDATE]: (action, state, emitIntent) => {
@@ -59,15 +58,14 @@ const actionProcessorMap = {
   [CASE_TYPE.PREVIEW_APPLY]: (action, state, emitIntent) => {
     const { eventControlState } = action.eventState
     state = reducePreviewTabList(state, eventControlState)
-    // TODO: should already covered
-    // state = { ...state, componentTabList: state.previewTabTree.map((tab) => state.componentTabList.find((component) => component.props.id === tab.id)) }
+    state = { ...state, componentTabList: state.previewTabList.map((tab) => state.componentTabList.find((component) => component.props.tab.id === tab.id)) }
     emitIntent(EVENT_INTENT_TYPE.APPLY, state)
     state = reducerSelectCancel(state)
     return state
   }
 }
 
-function createTabTreeContextStore () {
+function createTabListContextStore () {
   return createContextStore(
     ProviderScheme,
     (state, prevState, action, emit) => {
@@ -75,7 +73,7 @@ function createTabTreeContextStore () {
       const eventCaseType = CASE_SWITCH.GET(
         action.eventSource,
         action.eventType || NULL,
-        state.hoverTabId ? HAS_HOVER_TAB : NULL
+        state.hoverTab ? HAS_HOVER_TAB : NULL
       )
       const actionProcessor = actionProcessorMap[ eventCaseType ]
       if (!actionProcessor) return state
@@ -87,16 +85,16 @@ function createTabTreeContextStore () {
 
 const Provider = createContextProvider(STORE_NAME)
 
-const createTabTreeRootConnector = (WrappedComponent) => createContextConnector(STORE_NAME, WrappedComponent, {
+const createTabListRootConnector = (WrappedComponent) => createContextConnector(STORE_NAME, WrappedComponent, {
   emitCallbackMap: {
     [EVENT_INTENT_TYPE.PREVIEW]: (state, { storeState }) => {
-      const { previewTabTree, hoverTabId, hoverPosition } = storeState
-      return { ...state, previewTabTree, hoverTabId, hoverPosition }
+      const { previewTabList, hoverTab, hoverPosition } = storeState
+      return { ...state, previewTabList, hoverTab, hoverPosition }
     },
     [EVENT_INTENT_TYPE.APPLY]: (state, { storeState }, component) => {
-      const { previewTabTree } = storeState
-      component.props.doSetTabTree(previewTabTree)
-      return { ...state, previewTabTree: null, hoverTabId: null, hoverPosition: null }
+      const { previewTabList } = storeState
+      component.props.doSetTabList(previewTabList)
+      return { ...state, previewTabList: null, hoverTab: null, hoverPosition: null }
     }
   },
   onMount: (component) => {
@@ -116,26 +114,26 @@ const createTabTreeRootConnector = (WrappedComponent) => createContextConnector(
         onPanCancel: dispatchEvent(EVENT_GESTURE_TYPE.PAN_CANCEL)
       }
     )
-    component.store.dispatch(ActionCreatorMap.ComponentTabTreeRootSet(component))
+    component.store.dispatch(ActionCreatorMap.ComponentTabListRootSet(component))
   },
   onUnmount: (component) => {
-    component.store.dispatch(ActionCreatorMap.ComponentTabTreeRootSet(null))
+    component.store.dispatch(ActionCreatorMap.ComponentTabListRootSet(null))
     component.eventControl && component.eventControl.stop()
   }
 })
 
 const createTabConnector = (WrappedComponent) => createContextConnector(STORE_NAME, WrappedComponent, {
   onMount: (component) => {
-    component.store.dispatch(ActionCreatorMap.ComponentTabListAdd(component))
+    component.batchUpdate(() => component.store.dispatch(ActionCreatorMap.ComponentTabListAdd(component)))
   },
   onUnmount: (component) => {
-    component.store.dispatch(ActionCreatorMap.ComponentTabListDelete(component))
+    component.batchUpdate(() => component.store.dispatch(ActionCreatorMap.ComponentTabListDelete(component)))
   }
 })
 
 export {
-  createTabTreeContextStore,
+  createTabListContextStore,
   Provider,
-  createTabTreeRootConnector,
+  createTabListRootConnector,
   createTabConnector
 }

@@ -4,7 +4,7 @@ const PROVIDER_NAME = 'TabTreeProvider'
 const ProviderScheme = ObjectAs(
   PROVIDER_NAME,
   {
-    componentTabTree: null,
+    componentTabTreeRoot: null,
     componentTabList: ArrayOf('componentTabList', {}),
     previewTabTree: null,
     hoverTabId: null,
@@ -13,7 +13,7 @@ const ProviderScheme = ObjectAs(
 )
 const ActionCreatorMap = {
   Set: (key, value) => ({ name: PROVIDER_NAME, type: 'set', payload: { key, value } }),
-  ComponentTabTreeSet: (value) => ({ name: PROVIDER_NAME, type: 'set', payload: { key: 'componentTabTree', value } }),
+  ComponentTabTreeRootSet: (value) => ({ name: PROVIDER_NAME, type: 'set', payload: { key: 'componentTabTreeRoot', value } }),
   ComponentTabListAdd: (value) => ({ name: 'componentTabList', type: 'matchPush', payload: { value } }),
   ComponentTabListDelete: (value) => ({ name: 'componentTabList', type: 'matchDelete', payload: { value } })
 }
@@ -28,9 +28,9 @@ function reducerSelectCancel (state) {
 }
 
 function reducePreviewTabList (state, eventControlState) { // TODO: can optimize
-  const { componentTabTree, componentTabList, hoverTabId } = state
+  const { componentTabTreeRoot, componentTabList, hoverTabId } = state
   const { pointerCenter } = eventControlState
-  let previewTabTree = state.previewTabTree || componentTabTree.props.tabTree
+  let previewTabTree = state.previewTabTree || componentTabTreeRoot.props.tabTree
   const { linkMap, childListMap } = previewTabTree
   let hoverPosition = null
   let minDistance = Infinity

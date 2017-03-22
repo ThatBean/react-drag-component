@@ -1,7 +1,7 @@
 import {
   createTabTreeContextStore,
   Provider,
-  createTabTreeConnector,
+  createTabTreeRootConnector,
   createTabConnector
 } from './context'
 
@@ -19,7 +19,7 @@ import {
 export default {
   createTabTreeContextStore,
   Provider,
-  createTabTreeConnector,
+  createTabTreeRootConnector,
   createTabConnector,
 
   ProviderScheme,
