@@ -1,4 +1,4 @@
-# react-drag-components
+# react-drag-component
 
 Odd Packages Packed Within(currently):
 * `react-context-store` for using react context
@@ -9,12 +9,12 @@ Odd Packages Packed Within(currently):
 
 To use this package is not (that) simple.
 
-First check the [Example](https://thatbean.github.io/react-drag-component/) located at `example/`
+First check the [DEMO](https://thatbean.github.io/react-drag-component/) code located at `example/`
 
 Then try to hack the React Component code at `example/source`. The CSS style is `postcss-cssnext` format.
 
 The state related code is at:
-* `example\source\index`
-* `source\TabTreeContext`
+* `source/`
+* `example/source/index`
 
 The Pointer Event related code is at: `source\__lib__\eventControl`
