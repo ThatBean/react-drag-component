@@ -1,12 +1,9 @@
 import React, { Component, PropTypes } from 'react'
 
+import { muteEvent } from './utils'
+
 import LocalClassName from './text-editable.pcss'
 const CSS_TEXT_EDITABLE = LocalClassName[ 'text-editable' ]
-
-function muteEvent (event) {
-  event && event.preventDefault()
-  event && event.stopPropagation()
-}
 
 function checkEnterKey (event) {
   return (event.code === 'Enter' || event.keyCode === 13 || event.which === 13)
@@ -33,10 +30,7 @@ class TextEditable extends Component {
     super(props)
 
     this.getEditValue = () => (this.props.getValue() || '')
-    this.startEdit = (event) => {
-      muteEvent(event)
-      this.toggleEditing(true)
-    }
+    this.startEdit = muteEvent(() => this.toggleEditing(true))
     this.endEdit = () => this.toggleEditing(false)
 
     this.onEditUpdate = (event) => this.setState({ editingValue: event.target.value })
@@ -60,6 +54,10 @@ class TextEditable extends Component {
     if (this.props.editOnMount) this.startEdit()
   }
 
+  componentWillReceiveProps (nextProps, nextState) {
+    if (nextProps.isDisabled && nextState.isEditing) this.setState({ isEditing: false })
+  }
+
   toggleEditing (isEditing) {
     isEditing = Boolean(isEditing)
     if (isEditing === this.state.isEditing) return
@@ -80,15 +78,13 @@ class TextEditable extends Component {
     if (isDisabled || !isEditing) {
       return <div
         ref={this.setElementRef}
-        className={`${CSS_TEXT_EDITABLE} ${className || ''}`}
+        className={`${CSS_TEXT_EDITABLE} div-display ${className || ''}`}
         onDoubleClick={isDisabled ? null : this.startEdit}
-      >
-        {this.getEditValue()}
-      </div>
+      >{this.getEditValue() || placeholder}</div>
     } else {
       return <textarea
         ref={this.setElementRef}
-        className={`${CSS_TEXT_EDITABLE} ${className || ''}`}
+        className={`${CSS_TEXT_EDITABLE} textarea-edit ${className || ''}`}
         value={editingValue}
         placeholder={placeholder || ''}
         onChange={this.onEditUpdate}

@@ -11,10 +11,7 @@ function initTabTree (rootElement) {
   const tabTreeContextStore = TabTreeContext.createTabTreeContextStore()
 
   function renderExample (state) {
-    ReactDOM.render(
-      <div><TabTree tabTreeContextStore={tabTreeContextStore} {...state} {...TabOperation} /></div>,
-      rootElement
-    )
+    ReactDOM.render(<div><TabTree tabTreeContextStore={tabTreeContextStore} {...state} {...TabOperation} /></div>, rootElement)
   }
 
   let state = {
@@ -93,10 +90,7 @@ function initTabList (rootElement) {
   const tabListContextStore = TabListContext.createTabListContextStore()
 
   function renderExample (state) {
-    ReactDOM.render(
-      <div><TabList tabListContextStore={tabListContextStore} {...state} {...TabOperation} /></div>,
-      rootElement
-    )
+    ReactDOM.render(<div><TabList tabListContextStore={tabListContextStore} {...state} {...TabOperation} /></div>, rootElement)
   }
 
   let state = {

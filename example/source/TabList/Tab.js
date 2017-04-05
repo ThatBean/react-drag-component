@@ -1,17 +1,9 @@
 import React, { Component, PropTypes } from 'react'
 import { TabListContext } from '../../../source'
-import { TextEditable, MaterialIcon, muteEvent } from '../common'
+import { TextEditable, MaterialIcon, muteEvent, getHoverStyle } from '../common'
 
 import LocalClassName from './tab.pcss'
 const CSS_TAB = LocalClassName[ 'tab' ]
-
-function getHoverStyle (position, divElement) {
-  const boundingRect = divElement && divElement.getBoundingClientRect()
-  let transform = boundingRect
-    ? `translate3d(${Math.round(position.x - boundingRect.width * 0.3)}px, ${Math.round(position.y - boundingRect.height * 0.5)}px, 0px)`
-    : `translate3d(calc(${Math.round(position.x)}px - 30%), calc(${Math.round(position.y)}px - 50%), 0px)`
-  return { zIndex: 1, position: 'fixed', top: 0, left: 0, transform }
-}
 
 class TabComponent extends Component {
   static propTypes = {
@@ -25,18 +17,9 @@ class TabComponent extends Component {
 
     this.doGetTabName = () => this.props.data.getTabContent(this.props).name
     this.doSetTabName = (name) => this.props.data.setTabContent({ ...this.props.data.getTabContent(this.props), name })
-    this.doAddTab = (event) => {
-      muteEvent(event)
-      this.props.data.doAddTab(this.props)
-    }
-    this.doSelectTab = (event) => {
-      muteEvent(event)
-      this.props.data.doSelectTab(this.props)
-    }
-    this.doDeleteTab = (event) => {
-      muteEvent(event)
-      this.props.data.doDeleteTab(this.props)
-    }
+    this.doAddTab = muteEvent(() => this.props.data.doAddTab(this.props))
+    this.doSelectTab = muteEvent(() => this.props.data.doSelectTab(this.props))
+    this.doDeleteTab = muteEvent(() => this.props.data.doDeleteTab(this.props))
 
     this.setElementRef = (ref) => (this.divElement = ref)
     this.divElement = null

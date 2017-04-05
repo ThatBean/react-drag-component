@@ -1,14 +1,15 @@
-div:local(.text-editable) {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-textarea:local(.text-editable) {
-  overflow: auto;
-  resize: none;
-  outline: none;
-  background: transparent;
-  border: 0;
-  width: 100%;
+:local(.text-editable) {
+  &.div-display {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  &.textarea-edit {
+    overflow: auto;
+    resize: none;
+    outline: none;
+    background: transparent;
+    border: 0;
+    width: 100%;
+  }
 }

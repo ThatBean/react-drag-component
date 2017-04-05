@@ -5,7 +5,7 @@ import {
   ProviderScheme,
   ActionCreatorMap,
   reducerSelectCancel,
-  reducePreviewTabList,
+  reducePreviewTabList
 } from './contextState'
 
 const EVENT_INTENT_TYPE = {

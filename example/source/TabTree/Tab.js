@@ -1,19 +1,12 @@
 import React, { Component, PropTypes } from 'react'
 
 import { TabTreeContext } from '../../../source'
-import { TextEditable, MaterialIcon, muteEvent } from '../common'
+import { TextEditable, MaterialIcon, muteEvent, getHoverStyle } from '../common'
 
-import './tree-link.pcss'
 import LocalClassName from './tab.pcss'
 const CSS_TAB = LocalClassName[ 'tab' ]
-
-function getHoverStyle (position, divElement) {
-  const boundingRect = divElement && divElement.getBoundingClientRect()
-  let transform = boundingRect
-    ? `translate3d(${Math.round(position.x - boundingRect.width * 0.3)}px, ${Math.round(position.y - boundingRect.height * 0.5)}px, 0px)`
-    : `translate3d(calc(${Math.round(position.x)}px - 30%), calc(${Math.round(position.y)}px - 50%), 0px)`
-  return { zIndex: 1, position: 'fixed', top: 0, left: 0, transform }
-}
+const CSS_TREE_LINK = LocalClassName[ 'tree-link' ]
+const CSS_TREE_LINK_GROUP = LocalClassName[ 'tree-link-group' ]
 
 class TabComponent extends Component {
   static propTypes = {
@@ -27,24 +20,14 @@ class TabComponent extends Component {
 
     this.doGetTabName = () => this.props.data.getTabContent(this.props).name
     this.doSetTabName = (name) => this.props.data.setTabContent({ ...this.props.data.getTabContent(this.props), name })
-    this.doAddTab = (event) => {
-      muteEvent(event)
-      this.props.data.doAddTab(this.props)
-    }
-    this.doSelectTab = (event) => {
-      muteEvent(event)
-      this.props.data.doSelectTab(this.props)
-    }
-    this.doDeleteTab = (event) => {
-      muteEvent(event)
-      this.props.data.doDeleteTab(this.props)
-    }
-    this.doToggleExpand = (event) => {
-      muteEvent(event)
+    this.doAddTab = muteEvent(() => this.props.data.doAddTab(this.props))
+    this.doSelectTab = muteEvent(() => this.props.data.doSelectTab(this.props))
+    this.doDeleteTab = muteEvent(() => this.props.data.doDeleteTab(this.props))
+    this.doToggleExpand = muteEvent(() => {
       const { linkMap, doExpand } = this.props.data
       const { isExpand } = linkMap[ this.props.id ]
       doExpand(this.props, !isExpand)
-    }
+    })
 
     this.setElementRef = (ref) => (this.divElement = ref)
     this.divElement = null
@@ -55,7 +38,7 @@ class TabComponent extends Component {
     const { childListMap } = data
     const isExpand = true
     const isRoot = level === 0
-    return <div className={[ 'tree-link-group', isRoot ? 'root' : '', isExpand ? '' : 'hide' ].join(' ')}>
+    return <div className={[ CSS_TREE_LINK_GROUP, isRoot ? 'root' : '', isExpand ? '' : 'hide' ].join(' ')}>
       {childListMap[ id ].map((id) => <Tab key={id} id={id} level={level + 1} data={data} />) }
     </div>
   }
@@ -71,7 +54,7 @@ class TabComponent extends Component {
     const hasChildTab = !isHoverSource && !isHoverPreview && Boolean(childListMap[ id ])
     const canEdit = !isHoverSource && !isHoverPreview && !isLock
     const props = {
-      className: isHoverPreview ? 'hover-preview' : !isRoot ? 'tree-link' : '',
+      className: isHoverPreview ? 'hover-preview' : !isRoot ? CSS_TREE_LINK : 'root',
       style: isHoverPreview ? getHoverStyle(hoverPosition, this.divElement) : null
     }
     return <div {...props}>

@@ -7,12 +7,48 @@
   --indent-root: 12px;
 }
 
+:local(.tree-link) {
+  position: relative;
+  padding-left: var(--indent-right);
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    background-color: var(--link-color);
+  }
+  &::before {
+    top: calc(0.5 * var(--indent-height));
+    width: var(--indent-right);
+    height: var(--link-size);
+    margin: auto;
+  }
+  &::after {
+    top: 0;
+    bottom: 0;
+    width: var(--link-size);
+    height: 100%;
+  }
+  &:last-child::after { height: calc(0.5 * var(--indent-height)); }
+}
+
+:local(.tree-link-group) {
+  padding-left: var(--indent-left);
+  list-style: none;
+  &.hide { display: none; }
+  &.root {
+    padding-left: calc(var(--indent-root) + var(--indent-left));
+    background: rgba(0, 0, 0, 0.02);
+  }
+}
+
+/* customize=========================================== */
+
 :local(.tab) {
   cursor: default;
   display: flex;
   flex-direction: row;
   align-items: center;
-  /*justify-content: space-between;*/
   height: var(--indent-height);
   padding-right: var(--indent-root);
   &:hover { background: rgba(0, 0, 0, 0.05); }

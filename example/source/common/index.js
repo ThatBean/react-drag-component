@@ -1,14 +1,10 @@
 import { TextEditable } from './TextEditable'
 import { MaterialIcon } from './MaterialIcon'
-
-function muteEvent (event) {
-  event && event.preventDefault()
-  event && event.stopPropagation()
-  return event
-}
+import { muteEvent, getHoverStyle } from './utils'
 
 export {
   TextEditable,
   MaterialIcon,
-  muteEvent
+  muteEvent,
+  getHoverStyle
 }
