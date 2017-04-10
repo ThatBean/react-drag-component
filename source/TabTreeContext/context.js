@@ -5,7 +5,8 @@ import {
   ProviderScheme,
   ActionCreatorMap,
   reducerSelectCancel,
-  reducePreviewTabList
+  reducePreviewTabList,
+  reduceTreeLinkMove
 } from './contextState'
 
 const EVENT_INTENT_TYPE = {
@@ -44,7 +45,6 @@ const actionProcessorMap = {
     if (!componentTab) return state
     const { linkMap } = componentTab.props.data
     if (linkMap[ componentTab.props.id ].isLock) return state
-    // console.log(CASE_TYPE.PREVIEW_START, componentTab.props.id)
     state = { ...state, hoverTabId: componentTab.props.id }
     state = reducePreviewTabList(state, eventControlState)
     emitIntent(EVENT_INTENT_TYPE.PREVIEW, state)
@@ -59,8 +59,6 @@ const actionProcessorMap = {
   [CASE_TYPE.PREVIEW_APPLY]: (action, state, emitIntent) => {
     const { eventControlState } = action.eventState
     state = reducePreviewTabList(state, eventControlState)
-    // TODO: should already covered
-    // state = { ...state, componentTabList: state.previewTabTree.map((tab) => state.componentTabList.find((component) => component.props.id === tab.id)) }
     emitIntent(EVENT_INTENT_TYPE.APPLY, state)
     state = reducerSelectCancel(state)
     return state
@@ -89,14 +87,54 @@ const Provider = createContextProvider(STORE_NAME)
 
 const createTabTreeRootConnector = (WrappedComponent) => createContextConnector(STORE_NAME, WrappedComponent, {
   emitCallbackMap: {
-    [EVENT_INTENT_TYPE.PREVIEW]: (state, { storeState }) => {
-      const { previewTabTree, hoverTabId, hoverPosition } = storeState
-      return { ...state, previewTabTree, hoverTabId, hoverPosition }
+    [EVENT_INTENT_TYPE.PREVIEW]: (state, { storeState }, component) => {
+      const { componentTabList, insertData, hoverTabId, hoverPosition } = storeState
+
+      let indicatorData = null
+      if (insertData) {
+        const { insertParentTabId, insertIndex } = insertData
+        const { linkMap, childListMap, root } = component.props.tabTree
+        let indicatorType = null
+        let indicatorTabId = null
+        let indicatorPinHeightFix = null
+        if (!childListMap[ insertParentTabId ] || (root !== insertParentTabId && !linkMap[ insertParentTabId ].isExpand)) { // new first child, or not expand
+          indicatorType = 'box'
+          indicatorTabId = insertParentTabId
+        } else if (!childListMap[ insertParentTabId ][ insertIndex ]) { // last tab, not created
+          indicatorType = 'pin'
+          indicatorTabId = childListMap[ insertParentTabId ][ insertIndex - 1 ]
+          indicatorPinHeightFix = 1
+        } else { // has tab
+          indicatorType = 'pin'
+          indicatorTabId = childListMap[ insertParentTabId ][ insertIndex ]
+          indicatorPinHeightFix = 0
+        }
+        const indicatorTabComponent = componentTabList.find((component) => component.props.id === indicatorTabId)
+        const boundingRect = indicatorTabComponent.getWrappedRef().divFullElement.getBoundingClientRect()
+        const refBoundingRect = component.getWrappedRef().divElement.getBoundingClientRect()
+        indicatorData = {
+          type: indicatorType,
+          style: indicatorType === 'box'
+            ? {
+              left: `${boundingRect.left - refBoundingRect.left}px`,
+              top: `${boundingRect.top - refBoundingRect.top}px`,
+              width: `${boundingRect.width}px`,
+              height: `${boundingRect.height}px`
+            }
+            : {
+              left: `${boundingRect.left - refBoundingRect.left}px`,
+              top: `${boundingRect.top - refBoundingRect.top + boundingRect.height * indicatorPinHeightFix}px`,
+              width: `${boundingRect.width}px`
+            }
+        }
+      }
+      return { ...state, indicatorData, hoverTabId, hoverPosition }
     },
-    [EVENT_INTENT_TYPE.APPLY]: (state, { storeState }, component) => {
-      const { previewTabTree } = storeState
-      component.props.doSetTabTree(previewTabTree)
-      return { ...state, previewTabTree: null, hoverTabId: null, hoverPosition: null }
+    [ EVENT_INTENT_TYPE.APPLY ]: (state, { storeState }, component) => {
+      const { hoverTabId, insertData } = storeState
+      const tabTree = insertData && reduceTreeLinkMove(component.props.tabTree, { key: hoverTabId, index: insertData.insertIndex, parent: insertData.insertParentTabId })
+      tabTree && setTimeout(() => component.props.doSetTabTree(tabTree))
+      return { ...state, indicatorData: null, hoverTabId: null, hoverPosition: null }
     }
   },
   onMount: (component) => {

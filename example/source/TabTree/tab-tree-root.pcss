@@ -3,9 +3,30 @@
   overflow-x: auto;
   overflow-y: hidden;
   padding-bottom: 240px;
-  
+
   & .bar {
     padding: 2px 8px;
     height: 48px;
   }
+
+  & .indicator {
+    position: absolute;
+    display: none;
+    transition-duration: 0.15s;
+    transition-timing-function: ease;
+    transition-property: width, height, top, left, opacity;
+    z-index: 1;
+    &.box {
+      display: block;
+      border: 2px dashed #f00;
+      opacity: 0.25;
+    }
+    &.pin {
+      display: block;
+      height: 1px;
+      border: 1px solid #f00;
+      opacity: 0.4;
+    }
+  }
+
 }

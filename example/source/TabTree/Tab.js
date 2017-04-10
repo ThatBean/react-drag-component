@@ -12,7 +12,9 @@ class TabComponent extends Component {
   static propTypes = {
     id: PropTypes.string,
     level: PropTypes.number,
-    data: PropTypes.object
+    data: PropTypes.object,
+    isHoverSource: PropTypes.bool,
+    isHoverPreview: PropTypes.bool
   }
 
   constructor (props) {
@@ -31,33 +33,33 @@ class TabComponent extends Component {
 
     this.setElementRef = (ref) => (this.divElement = ref)
     this.divElement = null
+    this.setFullElementRef = (ref) => (this.divFullElement = ref)
+    this.divFullElement = null
   }
 
   renderSubLevel () {
-    const { id, level, data } = this.props
-    const { childListMap } = data
+    const { id, level, data, isHoverSource } = this.props
+    const { childListMap, hoverTabId } = data
     const isExpand = true
     const isRoot = level === 0
     return <div className={[ CSS_TREE_LINK_GROUP, isRoot ? 'root' : '', isExpand ? '' : 'hide' ].join(' ')}>
-      {childListMap[ id ].map((id) => <Tab key={id} id={id} level={level + 1} data={data} />) }
+      {childListMap[ id ].map((id) => <Tab key={id} id={id} level={level + 1} data={data} isHoverSource={isHoverSource || id === hoverTabId} />) }
     </div>
   }
 
   render () {
-    const { id, level, data } = this.props
-    const { linkMap, childListMap, selectTabId, hoverTabId, hoverPosition } = data
+    const { id, level, data, isHoverSource, isHoverPreview } = this.props
+    const { linkMap, childListMap, selectTabId, hoverPosition } = data
     const { isExpand, isLock } = linkMap[ id ]
     const isRoot = level === 0
     const isSelect = id === selectTabId
-    const isHoverPreview = Boolean(hoverPosition)
-    const isHoverSource = id === hoverTabId && !isHoverPreview
-    const hasChildTab = !isHoverSource && !isHoverPreview && Boolean(childListMap[ id ])
+    const hasChildTab = !isHoverPreview && Boolean(childListMap[ id ])
     const canEdit = !isHoverSource && !isHoverPreview && !isLock
-    const props = {
-      className: isHoverPreview ? 'hover-preview' : !isRoot ? CSS_TREE_LINK : 'root',
-      style: isHoverPreview ? getHoverStyle(hoverPosition, this.divElement) : null
-    }
-    return <div {...props}>
+    return <div
+      ref={this.setFullElementRef}
+      className={isHoverPreview ? 'hover-preview' : !isRoot ? CSS_TREE_LINK : 'root'}
+      style={isHoverPreview ? getHoverStyle(hoverPosition, this.divElement) : null}
+    >
       <div
         ref={this.setElementRef}
         className={[ CSS_TAB, isRoot ? 'root' : 'sub', isSelect ? 'select' : '', isHoverSource ? 'hover-source' : '', isHoverPreview ? 'hover-preview' : '' ].join(' ')}

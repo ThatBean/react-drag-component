@@ -43,7 +43,6 @@
 }
 
 /* customize=========================================== */
-
 :local(.tab) {
   cursor: default;
   display: flex;
@@ -51,6 +50,7 @@
   align-items: center;
   height: var(--indent-height);
   padding-right: var(--indent-root);
+  transition: opacity 0.15s ease;
   &:hover { background: rgba(0, 0, 0, 0.05); }
   &:hover .edit-button { opacity: 0.4; }
   &.root {
@@ -59,8 +59,8 @@
     padding: 0 var(--indent-root);
   }
   &.select { color: #f75b50; }
-  &.hover-source { background-color: rgba(247, 91, 80, 0.1); }
-  &.hover-preview { background-color: #EAEBED; }
+  &.hover-source { opacity: 0.4; }
+  &.hover-preview { opacity: 0.4; background: rgba(247, 91, 80, 0.1); }
 
   & .icon {
     width: 24px;

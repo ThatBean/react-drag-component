@@ -4,7 +4,7 @@ import { TabTreeContext } from '../../../source'
 import { Tab, TabComponent } from './Tab'
 
 import LocalClassName from './tab-tree-root.pcss'
-const CSS_TAB_TREE_ROOT = LocalClassName['tab-tree-root']
+const CSS_TAB_TREE_ROOT = LocalClassName[ 'tab-tree-root' ]
 
 class TabTreeRootComponent extends Component {
   static propTypes = {
@@ -19,15 +19,15 @@ class TabTreeRootComponent extends Component {
     setTabContent: PropTypes.func,
     getTabContent: PropTypes.func,
     // from contextState
-    previewTabTree: PropTypes.object,
     hoverTabId: PropTypes.string,
-    hoverPosition: PropTypes.object
+    hoverPosition: PropTypes.object,
+    indicatorData: PropTypes.object
   }
 
   constructor (props) {
     super(props)
 
-    const {doSetTabTree, doAddTab, doSelectTab, doDeleteTab, setTabContent, getTabContent} = this.props
+    const { doSetTabTree, doAddTab, doSelectTab, doDeleteTab, setTabContent, getTabContent } = this.props
 
     this.tabOperation = {
       doSetTabTree,
@@ -37,20 +37,20 @@ class TabTreeRootComponent extends Component {
       setTabContent,
       getTabContent,
       doExpand: (tab, isExpand) => {
-        const {linkMap} = this.props.tabTree
-        const link = linkMap[tab.id]
+        const { linkMap } = this.props.tabTree
+        const link = linkMap[ tab.id ]
         if (!link || link.isLock || link.isExpand === isExpand) return
-        const nextLinkMap = {...linkMap, [tab.id]: {...link, isExpand}}
-        doSetTabTree({...this.props.tabTree, linkMap: nextLinkMap})
+        const nextLinkMap = { ...linkMap, [tab.id]: { ...link, isExpand } }
+        doSetTabTree({ ...this.props.tabTree, linkMap: nextLinkMap })
       },
       doRecursiveExpand: (isExpand) => {
-        const {linkMap} = this.props.tabTree
+        const { linkMap } = this.props.tabTree
         const nextLinkMap = {}
         Object.keys(linkMap).forEach((key) => {
-          const link = linkMap[key]
-          nextLinkMap[key] = {...link, isExpand: (link.isLock ? link.isExpand : isExpand)}
+          const link = linkMap[ key ]
+          nextLinkMap[ key ] = { ...link, isExpand: (link.isLock ? link.isExpand : isExpand) }
         })
-        doSetTabTree({...this.props.tabTree, linkMap: nextLinkMap})
+        doSetTabTree({ ...this.props.tabTree, linkMap: nextLinkMap })
       }
     }
 
@@ -59,15 +59,15 @@ class TabTreeRootComponent extends Component {
   }
 
   render () {
-    const {contentList, tabTree, selectTabId, previewTabTree, hoverTabId, hoverPosition} = this.props
-    const {root, linkMap, childListMap} = previewTabTree || tabTree
+    const { contentList, tabTree, selectTabId, hoverTabId, hoverPosition, indicatorData } = this.props
+    const { root, linkMap, childListMap } = tabTree
 
     let showExpand = false
     let isAllRootCollapsed = true
-    childListMap[root].forEach((key) => {
-      const {isExpand, isLock} = linkMap[key]
-      showExpand = showExpand || Boolean(childListMap[key]) // has child tab
-      isAllRootCollapsed = isAllRootCollapsed && (isLock || !isExpand || !childListMap[key]) // locked or no child, or not expanded
+    childListMap[ root ].forEach((key) => {
+      const { isExpand, isLock } = linkMap[ key ]
+      showExpand = showExpand || Boolean(childListMap[ key ]) // has child tab
+      isAllRootCollapsed = isAllRootCollapsed && (isLock || !isExpand || !childListMap[ key ]) // locked or no child, or not expanded
     }) // only when all root is closed
 
     const data = {
@@ -84,10 +84,11 @@ class TabTreeRootComponent extends Component {
     return <div ref={this.setElementRef} className={`${CSS_TAB_TREE_ROOT} RIGHT-PANEL flex-container-column FILL`}>
       <div className="bar">
         {showExpand && <button onClick={() => this.tabOperation.doRecursiveExpand(isAllRootCollapsed)}>{isAllRootCollapsed ? 'ExpandAll' : 'CollapseAll' }</button>}
-        <button onClick={() => this.tabOperation.doAddTab({id: linkMap[selectTabId].parent})}>AddNew</button>
+        <button onClick={() => this.tabOperation.doAddTab({ id: linkMap[ selectTabId ].parent })}>AddNew</button>
       </div>
-      {childListMap[root].map((id) => <Tab key={id} id={id} level={0} data={data} />)}
-      {hoverTabId && hoverPosition && <TabComponent key="@@HOVER" id={hoverTabId} level={-1} data={{...data, hoverPosition}} />}
+      {childListMap[ root ].map((id) => <Tab key={id} id={id} level={0} data={data} isHoverSource={id === hoverTabId} />)}
+      {hoverTabId && hoverPosition && <TabComponent key="@@HOVER" id={hoverTabId} level={-1} data={{ ...data, hoverPosition }} isHoverPreview />}
+      {indicatorData && <div className={`indicator ${indicatorData.type}`} style={indicatorData.style} />}
     </div>
   }
 }

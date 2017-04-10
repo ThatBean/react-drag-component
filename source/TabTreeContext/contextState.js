@@ -6,9 +6,9 @@ const ProviderScheme = ObjectAs(
   {
     componentTabTreeRoot: null,
     componentTabList: ArrayOf('componentTabList', {}),
-    previewTabTree: null,
     hoverTabId: null,
-    hoverPosition: null
+    hoverPosition: null,
+    insertData: null
   }
 )
 const ActionCreatorMap = {
@@ -21,66 +21,116 @@ const ActionCreatorMap = {
 function reducerSelectCancel (state) {
   return {
     ...state,
-    previewTabTree: null,
     hoverTabId: null,
-    hoverPosition: null
+    hoverPosition: null,
+    insertData: null
   }
 }
+
+// Padding sample
+//
+// +-------------+
+// | ----------- |
+// | | padding | |
+// | +---------+ |   ---+
+// |             |      |
+// |    item0    |      |
+// |             |      |
+// | ----------- |      |
+// | | padding | |      +-- hover bound for item0
+// | +---------+ |      |
+// +-------------+      |
+// | ----------- |      |
+// | | padding | |      |
+// | +---------+ |   ---+
+// |             |
+// |    item1    |
+// |             |
+// | ----------- |
+// | | padding | |
+// | +---------+ |
+// +--------------
+
+const MAX_INSERT_PADDING = 40 // should be px
+const MIN_INSERT_PADDING = 10 // should be px
+const getInsertPadding = (height) => Math.max(Math.min(height * 0.125, MAX_INSERT_PADDING), MIN_INSERT_PADDING)
 
 function reducePreviewTabList (state, eventControlState) { // TODO: can optimize
   const { componentTabTreeRoot, componentTabList, hoverTabId } = state
   const { pointerCenter } = eventControlState
-  let previewTabTree = state.previewTabTree || componentTabTreeRoot.props.tabTree
-  const { linkMap, childListMap } = previewTabTree
+  const { linkMap, childListMap } = componentTabTreeRoot.props.tabTree
   let hoverPosition = null
   let minDistance = Infinity
   let insertParentTabId = null
   let insertIndex = null
+  // let debug = {}
   componentTabList.forEach((component) => {
     const { id } = component.props
     const tabRef = component.getWrappedRef()
     if (linkMap[ id ].isLock || !tabRef) return
-    const { top, left, width, height } = tabRef.divElement.getBoundingClientRect()
+    const { top, height } = tabRef.divElement.getBoundingClientRect()
     if (hoverTabId === id) hoverPosition = pointerCenter
-    const distance = pointerCenter.y - (top + height * 0.5)
+    const insertPadding = getInsertPadding(height)
+    const distance = pointerCenter.y - (top + height * 0.5 + insertPadding)
     if (Math.abs(distance) <= minDistance) {
       minDistance = Math.abs(distance)
-      if (pointerCenter.y > top + height) { // below, insert to same level, after
-        let leftHeight = pointerCenter.y - (top + height)
-        insertParentTabId = linkMap[ id ].parent
-        insertIndex = childListMap[ insertParentTabId ].indexOf(id) + 1
-        if (leftHeight > height) { // exceeding height, insert to last root
-          while (linkMap[ insertParentTabId ]) {
-            const lastId = insertParentTabId
-            insertParentTabId = linkMap[ lastId ].parent
-            insertIndex = childListMap[ insertParentTabId ].indexOf(lastId) + 1
-          }
-        }
-      } else if (pointerCenter.x <= left + width * 0.5 || !linkMap[ id ].isExpand) { // left  or not expand, insert to same level, before
+      // debug.id = component.props.id
+      if (pointerCenter.y <= top + insertPadding) {
+        // debug.reason = 'above, insert same level, before (final fallback for first item)'
         insertParentTabId = linkMap[ id ].parent
         insertIndex = childListMap[ insertParentTabId ].indexOf(id)
-      } else { // right, insert as child
+      } else if (pointerCenter.y <= top + height - insertPadding) {
+        // debug.reason = 'include, insert as first child'
         insertParentTabId = id
         insertIndex = 0
+      } else { // below, check
+        if (childListMap[ id ] && linkMap[ id ].isExpand) {
+          // debug.reason = 'has child, as child'
+          insertParentTabId = id
+          insertIndex = 0
+        } else {
+          // debug.reason = 'right, basic fallback, insert to same level, after'
+          insertParentTabId = linkMap[ id ].parent
+          insertIndex = childListMap[ insertParentTabId ].indexOf(id) + 1
+          let checkTabId = id
+          // console.log('start', checkTabId)
+          while (linkMap[ checkTabId ] && linkMap[ checkTabId ].parent) {
+            const lastTabId = checkTabId
+            checkTabId = linkMap[ checkTabId ].parent
+            // debug.reason = 'left, loop check && insert to upper level as last child'
+            insertParentTabId = checkTabId
+            insertIndex = childListMap[ checkTabId ].indexOf(lastTabId) + 1
+            // console.log(insertParentTabId, insertIndex, childListMap[ checkTabId ], lastTabId)
+            if (childListMap[ checkTabId ][ childListMap[ checkTabId ].length - 1 ] !== lastTabId) break // not the last child
+            const parentComponent = componentTabList.find((component) => component.props.id === checkTabId)
+            const parentRef = parentComponent && parentComponent.getWrappedRef()
+            if (parentRef && pointerCenter.x > parentRef.divElement.getBoundingClientRect().left) break // right side, insert to this level
+          }
+        }
       }
     }
   })
-  // if (insertParentTabId) console.log({ minDistance, insertParentTabId, insertIndex }, debug, previewTabTree)
-  if (insertParentTabId !== hoverTabId) previewTabTree = reduceTreeLinkMove(previewTabTree, { key: hoverTabId, parent: insertParentTabId, index: insertIndex })
-  return { ...state, previewTabTree, hoverPosition }
+
+  let isValidInsert = ~insertIndex && insertParentTabId !== hoverTabId && (
+      !childListMap[ insertParentTabId ] || (
+        childListMap[ insertParentTabId ][ insertIndex ] !== hoverTabId &&
+        childListMap[ insertParentTabId ][ insertIndex - 1 ] !== hoverTabId
+      )
+    )
+  let verifyTabId = insertParentTabId
+  while (isValidInsert && verifyTabId) {
+    if (verifyTabId === hoverTabId) isValidInsert = false
+    verifyTabId = linkMap[ verifyTabId ] && linkMap[ verifyTabId ].parent
+  }
+  const insertData = isValidInsert ? { insertParentTabId, insertIndex } : null
+  // console.log(minDistance, debug, isValidInsert, insertParentTabId, insertIndex, childListMap[ insertParentTabId ])
+  return { ...state, insertData, hoverPosition }
 }
 
 function reduceTreeLinkSet (state, { index, key, parent, isExpand = true, isLock = false }) { // for building the tree
   const linkMap = { ...state.linkMap, [key]: { key, parent, isExpand, isLock } }
   const childList = [ ...state.childListMap[ parent ] ]
   childList[ index ] = key
-  const childListMap = { ...state.childListMap, [parent]: childList }
-  return { ...state, linkMap, childListMap }
-}
-
-function reduceTreeLinkInsert (state, { index, key, parent, isExpand = true, isLock = false }) { // for building the tree
-  const linkMap = { ...state.linkMap, [key]: { key, parent, isExpand, isLock } }
-  const childList = Operation.arrayInsert(state.childListMap[ parent ] || [], index, key)
   const childListMap = { ...state.childListMap, [parent]: childList }
   return { ...state, linkMap, childListMap }
 }
@@ -115,6 +165,8 @@ function reduceTreeLinkMove (state, { index, key, parent }) {
   childListMap[ parent ] = Operation.arrayInsert(childListMap[ parent ] || [], index, key)
   // change link data
   const linkMap = { ...state.linkMap, [key]: { ...link, key, parent } }
+  // expand new parent
+  if (parent !== state.root) linkMap[ parent ] = Operation.objectMerge(state.linkMap[ parent ], { isExpand: true })
   return { ...state, linkMap, childListMap }
 }
 
