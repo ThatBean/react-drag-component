@@ -41,7 +41,7 @@ const actionProcessorMap = {
   [CASE_TYPE.PREVIEW_START]: (action, state, emitIntent) => {
     const { eventControlState } = action.eventState
     const componentTab = state.componentTabList.find((component) => component.getWrappedRef().divElement.contains(eventControlState.elementOrigin))
-    if (componentTab.props.tab.isLock) return state
+    if (componentTab.props.tab.isLock || componentTab.getWrappedRef().state.isEditing) return state
     if (componentTab) {
       state = { ...state, hoverTab: componentTab.props.tab }
       state = reducePreviewTabList(state, eventControlState)

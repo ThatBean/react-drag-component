@@ -12,13 +12,14 @@ function checkEnterKey (event) {
 /**
  * double click to edit, will auto trim newValue
  * will use state.editingValue when editing
- * will use props.getValue() when not editing
+ * will use props.value when not editing
  * on Multi-Line mode, use Shift-Enter to enter '\n'
  **/
 class TextEditable extends Component {
   static propTypes = {
-    setValue: PropTypes.func.isRequired, // function(newValue), receives edit finish callback
-    getValue: PropTypes.func.isRequired, // function(), return current value
+    value: PropTypes.string.isRequired, // function(newValue), receives edit finish callback
+    onChange: PropTypes.func.isRequired, // function(), return current value
+    onEditStateChange: PropTypes.func, // will receive { isEditing: Boolean }
     placeholder: PropTypes.string,
     isDisabled: PropTypes.bool,
     isMultiLine: PropTypes.bool,
@@ -29,7 +30,6 @@ class TextEditable extends Component {
   constructor (props) {
     super(props)
 
-    this.getEditValue = () => (this.props.getValue() || '')
     this.startEdit = muteEvent(() => this.toggleEditing(true))
     this.endEdit = () => this.toggleEditing(false)
 
@@ -37,7 +37,7 @@ class TextEditable extends Component {
     this.onEditKeyPress = (event) => checkEnterKey(event) && (!this.props.isMultiLine || !event.shiftKey) && this.onEditFinish()
     this.onEditFinish = () => {
       const resultValue = this.state.editingValue.trim()
-      if (resultValue !== this.getEditValue()) this.props.setValue(resultValue)
+      if (resultValue !== this.props.value) this.props.onChange(resultValue)
       this.endEdit()
     }
 
@@ -58,10 +58,15 @@ class TextEditable extends Component {
     if (nextProps.isDisabled && nextState.isEditing) this.setState({ isEditing: false })
   }
 
+  componentDidUpdate (prevProps, prevState) {
+    const { isEditing } = this.state
+    if (isEditing !== prevState.isEditing && this.props.onEditStateChange) this.props.onEditStateChange({ isEditing })
+  }
+
   toggleEditing (isEditing) {
     isEditing = Boolean(isEditing)
     if (isEditing === this.state.isEditing) return
-    this.setState({ isEditing, editingValue: this.props.getValue() })
+    this.setState({ isEditing, editingValue: this.props.value })
     isEditing && setTimeout(() => {
       if (!this.textElement) return
       this.textElement.focus()
@@ -73,14 +78,14 @@ class TextEditable extends Component {
   }
 
   render () {
-    const { placeholder, isDisabled, className } = this.props
+    const { value, placeholder, isDisabled, className } = this.props
     const { isEditing, editingValue } = this.state
     if (isDisabled || !isEditing) {
       return <div
         ref={this.setElementRef}
         className={`${CSS_TEXT_EDITABLE} div-display ${className || ''}`}
         onDoubleClick={isDisabled ? null : this.startEdit}
-      >{this.getEditValue() || placeholder}</div>
+      >{value || placeholder}</div>
     } else {
       return <textarea
         ref={this.setElementRef}

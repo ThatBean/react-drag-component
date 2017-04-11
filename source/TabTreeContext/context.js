@@ -44,7 +44,7 @@ const actionProcessorMap = {
     const componentTab = state.componentTabList.find((component) => component.getWrappedRef().divElement.contains(eventControlState.elementOrigin))
     if (!componentTab) return state
     const { linkMap } = componentTab.props.data
-    if (linkMap[ componentTab.props.id ].isLock) return state
+    if (linkMap[ componentTab.props.id ].isLock || componentTab.getWrappedRef().state.isEditing) return state
     state = { ...state, hoverTabId: componentTab.props.id }
     state = reducePreviewTabList(state, eventControlState)
     emitIntent(EVENT_INTENT_TYPE.PREVIEW, state)
@@ -111,19 +111,20 @@ const createTabTreeRootConnector = (WrappedComponent) => createContextConnector(
         }
         const indicatorTabComponent = componentTabList.find((component) => component.props.id === indicatorTabId)
         const boundingRect = indicatorTabComponent.getWrappedRef().divFullElement.getBoundingClientRect()
-        const refBoundingRect = component.getWrappedRef().divElement.getBoundingClientRect()
+        const refElement = component.getWrappedRef().divElement
+        const refBoundingRect = refElement.getBoundingClientRect()
         indicatorData = {
           type: indicatorType,
           style: indicatorType === 'box'
             ? {
-              left: `${boundingRect.left - refBoundingRect.left}px`,
-              top: `${boundingRect.top - refBoundingRect.top}px`,
+              left: `${boundingRect.left - refBoundingRect.left + refElement.scrollLeft}px`,
+              top: `${boundingRect.top - refBoundingRect.top + refElement.scrollTop}px`,
               width: `${boundingRect.width}px`,
               height: `${boundingRect.height}px`
             }
             : {
-              left: `${boundingRect.left - refBoundingRect.left}px`,
-              top: `${boundingRect.top - refBoundingRect.top + boundingRect.height * indicatorPinHeightFix}px`,
+              left: `${boundingRect.left - refBoundingRect.left + refElement.scrollLeft}px`,
+              top: `${boundingRect.top - refBoundingRect.top + refElement.scrollTop + boundingRect.height * indicatorPinHeightFix}px`,
               width: `${boundingRect.width}px`
             }
         }
@@ -141,7 +142,7 @@ const createTabTreeRootConnector = (WrappedComponent) => createContextConnector(
     const { dispatch } = component.store
 
     const dispatchEvent = (eventType) => (eventControlState, event) => {
-      event && event.preventDefault()
+      // event && event.preventDefault()
       dispatch({ eventSource: STORE_NAME, eventType, eventState: { eventControlState } })
     }
 

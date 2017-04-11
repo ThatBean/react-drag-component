@@ -20,8 +20,8 @@ class TabComponent extends Component {
   constructor (props) {
     super(props)
 
-    this.doGetTabName = () => this.props.data.getTabContent(this.props).name
-    this.doSetTabName = (name) => this.props.data.setTabContent({ ...this.props.data.getTabContent(this.props), name })
+    this.getTabContent = () => this.props.data.getTabContent(this.props)
+    this.doSetTabName = (name) => this.props.data.setTabContent({ ...this.getTabContent(), name })
     this.doAddTab = muteEvent(() => this.props.data.doAddTab(this.props))
     this.doSelectTab = muteEvent(() => this.props.data.doSelectTab(this.props))
     this.doDeleteTab = muteEvent(() => this.props.data.doDeleteTab(this.props))
@@ -30,11 +30,14 @@ class TabComponent extends Component {
       const { isExpand } = linkMap[ this.props.id ]
       doExpand(this.props, !isExpand)
     })
+    this.onEditStateChange = ({ isEditing }) => this.setState({ isEditing })
 
     this.setElementRef = (ref) => (this.divElement = ref)
     this.divElement = null
     this.setFullElementRef = (ref) => (this.divFullElement = ref)
     this.divFullElement = null
+
+    this.state = { isEditing: false }
   }
 
   renderSubLevel () {
@@ -42,7 +45,7 @@ class TabComponent extends Component {
     const { childListMap, hoverTabId } = data
     const isExpand = true
     const isRoot = level === 0
-    return <div className={[ CSS_TREE_LINK_GROUP, isRoot ? 'root' : '', isExpand ? '' : 'hide' ].join(' ')}>
+    return <div className={`${CSS_TREE_LINK_GROUP} ${isRoot ? 'root' : ''} ${isExpand ? '' : 'hide'}`}>
       {childListMap[ id ].map((id) => <Tab key={id} id={id} level={level + 1} data={data} isHoverSource={isHoverSource || id === hoverTabId} />) }
     </div>
   }
@@ -55,6 +58,8 @@ class TabComponent extends Component {
     const isSelect = id === selectTabId
     const hasChildTab = !isHoverPreview && Boolean(childListMap[ id ])
     const canEdit = !isHoverSource && !isHoverPreview && !isLock
+    const { isEditing } = this.state
+    const doToggleExpand = !isEditing && hasChildTab && !isLock ? this.doToggleExpand : null
     return <div
       ref={this.setFullElementRef}
       className={isHoverPreview ? 'hover-preview' : !isRoot ? CSS_TREE_LINK : 'root'}
@@ -62,14 +67,16 @@ class TabComponent extends Component {
     >
       <div
         ref={this.setElementRef}
-        className={[ CSS_TAB, isRoot ? 'root' : 'sub', isSelect ? 'select' : '', isHoverSource ? 'hover-source' : '', isHoverPreview ? 'hover-preview' : '' ].join(' ')}
-        onClick={!isSelect ? this.doSelectTab : ((hasChildTab && !isLock) ? this.doToggleExpand : null)}
+        className={`${CSS_TAB} ${isRoot ? 'root' : 'sub'} ${isSelect ? 'select' : ''} ${isHoverSource ? 'hover-source' : ''} ${isHoverPreview ? 'hover-preview' : ''}`}
+        onClick={!isSelect ? this.doSelectTab : doToggleExpand}
       >
-        <MaterialIcon name={hasChildTab ? (isExpand ? 'keyboard_arrow_down' : 'keyboard_arrow_right') : 'label_outline'} className={hasChildTab ? 'icon' : 'icon leaf'} onClick={hasChildTab && !isLock ? this.doToggleExpand : null} />
+        <MaterialIcon name={hasChildTab ? (isExpand ? 'keyboard_arrow_down' : 'keyboard_arrow_right') : 'label_outline'} className={hasChildTab ? 'icon' : 'icon leaf'} onClick={doToggleExpand} />
         <span>{isHoverSource ? '[HOV]' : ''}{isSelect ? '[SEL]' : ''}{isLock ? '[LOCK]' : ''}</span>
-        <TextEditable className="tab-name" placeholder="Set Tab Name" isDisabled={!canEdit || !isSelect} setValue={this.doSetTabName} getValue={this.doGetTabName} />
-        {canEdit && <MaterialIcon name="add_circle" className="edit-button" onClick={this.doAddTab} />}
-        {canEdit && <MaterialIcon name="remove_circle" className="edit-button" onClick={this.doDeleteTab} />}
+        <TextEditable className="tab-name" value={this.getTabContent().name} onChange={this.doSetTabName} onEditStateChange={this.onEditStateChange} placeholder="Set Tab Name" isDisabled={!canEdit || !isSelect} />
+        {!isEditing && canEdit && <div className="edit-button-group">
+          <MaterialIcon name="add_circle" className="edit-button" onClick={this.doAddTab} />
+          <MaterialIcon name="remove_circle" className="edit-button" onClick={this.doDeleteTab} />
+        </div>}
       </div>
       {hasChildTab && isExpand && this.renderSubLevel()}
     </div>

@@ -15,14 +15,17 @@ class TabComponent extends Component {
   constructor (props) {
     super(props)
 
-    this.doGetTabName = () => this.props.data.getTabContent(this.props).name
-    this.doSetTabName = (name) => this.props.data.setTabContent({ ...this.props.data.getTabContent(this.props), name })
+    this.getTabContent = () => this.props.data.getTabContent(this.props)
+    this.doSetTabName = (name) => this.props.data.setTabContent({ ...this.getTabContent(), name })
     this.doAddTab = muteEvent(() => this.props.data.doAddTab(this.props))
     this.doSelectTab = muteEvent(() => this.props.data.doSelectTab(this.props))
     this.doDeleteTab = muteEvent(() => this.props.data.doDeleteTab(this.props))
+    this.onEditStateChange = ({ isEditing }) => this.setState({ isEditing })
 
     this.setElementRef = (ref) => (this.divElement = ref)
     this.divElement = null
+
+    this.state = { isEditing: false }
   }
 
   render () {
@@ -32,6 +35,7 @@ class TabComponent extends Component {
     const isHoverPreview = Boolean(hoverPosition)
     const isHoverSource = tab === hoverTab && !isHoverPreview
     const canEdit = !isHoverSource && !isHoverPreview && !tab.isLock
+    const { isEditing } = this.state
     // console.log('[RENDER] TabComponent ###################################')
     const props = {
       ref: this.setElementRef,
@@ -41,8 +45,8 @@ class TabComponent extends Component {
     }
     return <div {...props}>
       <span>{isHoverSource ? '[HOV]' : ''}{isSelect ? '[SEL]' : ''}{tab.isLock ? '[LOCK]' : ''}</span>
-      <TextEditable className="tab-name" placeholder="Set Tab Name" isDisabled={!canEdit || !isSelect} setValue={this.doSetTabName} getValue={this.doGetTabName} />
-      {canEdit && <MaterialIcon name="remove_circle" className="edit-button" onClick={this.doDeleteTab} />}
+      <TextEditable className="tab-name" placeholder="Set Tab Name" isDisabled={!canEdit || !isSelect} value={this.getTabContent().name} onChange={this.doSetTabName} onEditStateChange={this.onEditStateChange} />
+      {!isEditing && canEdit && <MaterialIcon name="remove_circle" className="edit-button" onClick={this.doDeleteTab} />}
     </div>
   }
 }

@@ -1,10 +1,13 @@
 :root {
-  --indent-height: 40px;
-  --indent-left: 10px;
-  --indent-right: 10px;
+  --indent-height: 32px;
+  --indent-left: 8px;
+  --indent-right: 8px;
   --link-size: 1px;
   --link-color: #ddd;
-  --indent-root: 12px;
+  --indent-height-root: 38px;
+  --indent-left-root: 12px;
+  --color-arrow: #d9d9d9;
+  --color-arrow-hover: #f55d54;
 }
 
 :local(.tree-link) {
@@ -37,28 +40,29 @@
   list-style: none;
   &.hide { display: none; }
   &.root {
-    padding-left: calc(var(--indent-root) + var(--indent-left));
+    padding-left: calc(var(--indent-left-root) + var(--indent-left));
     background: rgba(0, 0, 0, 0.02);
   }
 }
 
 /* customize=========================================== */
 :local(.tab) {
-  cursor: default;
   display: flex;
   flex-direction: row;
   align-items: center;
+  cursor: default;
+  position: relative;
   height: var(--indent-height);
-  padding-right: var(--indent-root);
+  padding-right: var(--indent-left-root);
   transition: opacity 0.15s ease;
-  &:hover { background: rgba(0, 0, 0, 0.05); }
-  &:hover .edit-button { opacity: 0.4; }
+  &:hover { background-color: rgba(0, 0, 0, 0.03); }
   &.root {
-    height: calc(var(--indent-height) * 1.2);
-    border-top: 1px solid #EAEBED;
-    padding: 0 var(--indent-root);
+    height: var(--indent-height-root);
+    border-top: 1px solid #eaebed;
+    padding: 0 var(--indent-left-root);
+    font-size: 14px;
   }
-  &.select { color: #f75b50; }
+  &.select { color: #f75b50; background-color: rgba(0, 0, 0, 0.06); }
   &.hover-source { opacity: 0.4; }
   &.hover-preview { opacity: 0.4; background: rgba(247, 91, 80, 0.1); }
 
@@ -69,14 +73,28 @@
     align-items: center;
     justify-content: center;
     font-size: 24px;
+    color: var(--color-arrow);
+    &:hover { color: var(--color-arrow-hover); }
     &.leaf { font-size: 16px; }
+    &.leaf:hover { color: var(--color-arrow); }
   }
   & .tab-name { flex: 1 1; }
-  & .edit-button {
-    cursor: pointer;
-    font-size: 16px;
-    padding: 0 2px;
-    opacity: 0;
-    &:hover { opacity: 1; }
+
+  &:hover .edit-button-group .edit-button { opacity: 0.4; }
+  & .edit-button-group {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: var(--indent-height);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    & .edit-button {
+      cursor: pointer;
+      font-size: 16px;
+      padding: 0 2px;
+      opacity: 0;
+      &:hover { opacity: 1; color: var(--color-arrow-hover); }
+    }
   }
 }
