@@ -1,4 +1,5 @@
-import React, { Component, PropTypes } from 'react'
+import React, { PureComponent } from 'react'
+import PropTypes from 'prop-types'
 
 import { muteEvent } from './utils'
 
@@ -15,7 +16,7 @@ function checkEnterKey (event) {
  * will use props.value when not editing
  * on Multi-Line mode, use Shift-Enter to enter '\n'
  **/
-class TextEditable extends Component {
+class TextEditable extends PureComponent {
   static propTypes = {
     value: PropTypes.string.isRequired, // function(newValue), receives edit finish callback
     onChange: PropTypes.func.isRequired, // function(), return current value

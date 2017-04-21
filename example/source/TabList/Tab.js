@@ -1,11 +1,12 @@
-import React, { Component, PropTypes } from 'react'
+import React, { PureComponent } from 'react'
+import PropTypes from 'prop-types'
 import { TabListContext } from '../../../source'
 import { TextEditable, MaterialIcon, muteEvent, getHoverStyle } from '../common'
 
 import LocalClassName from './tab.pcss'
 const CSS_TAB = LocalClassName[ 'tab' ]
 
-class TabComponent extends Component {
+class TabComponent extends PureComponent {
   static propTypes = {
     id: PropTypes.string,
     tab: PropTypes.object,

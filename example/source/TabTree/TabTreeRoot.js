@@ -1,12 +1,12 @@
-import React, { Component, PropTypes } from 'react'
-
+import React, { PureComponent } from 'react'
+import PropTypes from 'prop-types'
 import { TabTreeContext } from '../../../source'
 import { Tab, TabComponent } from './Tab'
 
 import LocalClassName from './tab-tree-root.pcss'
 const CSS_TAB_TREE_ROOT = LocalClassName[ 'tab-tree-root' ]
 
-class TabTreeRootComponent extends Component {
+class TabTreeRootComponent extends PureComponent {
   static propTypes = {
     tabTree: PropTypes.object,
     selectTabId: PropTypes.string,

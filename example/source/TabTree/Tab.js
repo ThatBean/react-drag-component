@@ -1,4 +1,5 @@
-import React, { Component, PropTypes } from 'react'
+import React, { PureComponent } from 'react'
+import PropTypes from 'prop-types'
 
 import { TabTreeContext } from '../../../source'
 import { TextEditable, MaterialIcon, muteEvent, getHoverStyle } from '../common'
@@ -8,7 +9,7 @@ const CSS_TAB = LocalClassName[ 'tab' ]
 const CSS_TREE_LINK = LocalClassName[ 'tree-link' ]
 const CSS_TREE_LINK_GROUP = LocalClassName[ 'tree-link-group' ]
 
-class TabComponent extends Component {
+class TabComponent extends PureComponent {
   static propTypes = {
     id: PropTypes.string,
     level: PropTypes.number,
