@@ -1,15 +1,24 @@
-:local(.text-editable) {
-  &.div-display {
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-  }
-  &.textarea-edit {
-    overflow: auto;
-    resize: none;
-    outline: none;
-    background: transparent;
-    border: 0;
-    width: 100%;
-  }
+:root {
+  --color-primary: #f55d54;
+  --color-selection: color(var(--color-primary) a(0.4));
+  --color-text-80: #525e71;
+}
+
+:local(.text-editable-display) {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+:local(.text-editable-edit) {
+  overflow: auto;
+  width: 100%;
+  height: 20px;
+  font-size: 12px;
+  line-height: 12px;
+  padding: 4px 0 3px;
+  color: var(--color-text-80);
+  border-bottom: 1px solid var(--color-primary);
+
+  &::selection { background: var(--color-selection); }
 }

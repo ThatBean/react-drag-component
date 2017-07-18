@@ -2,9 +2,7 @@ const NodeModulePath = require('path')
 const config = require('./common.conf')
 
 module.exports = Object.assign(config, {
-  entry: {
-    'index': './source/index'
-  },
+  entry: { 'index': './source/index' },
   output: {
     path: NodeModulePath.join(__dirname, '../library/'),
     filename: '[name].js',
@@ -14,7 +12,9 @@ module.exports = Object.assign(config, {
   externals: {
     'react': 'react',
     'react-dom': 'react-dom',
-    'react-redux': 'react-redux',
-    'redux': 'redux'
+    'prop-types': 'prop-types',
+    'hammerjs': 'hammerjs',
+    'state-scheme': 'state-scheme',
+    'react-context-store': 'react-context-store'
   }
 })

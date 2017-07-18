@@ -1,20 +1,28 @@
 # react-drag-component
 
-Odd Packages Packed Within(currently):
-* `react-context-store` for using react context
-* `state-scheme` for Immutable Data
-* `hammerjs` for Event processing
+[Online DEMO](https://thatbean.github.io/react-drag-component/)
 
-#### Hack guide
+#### Usage
 
-To use this package is not (that) simple.
+To use this package is (not that) simple:
 
-First check the [DEMO](https://thatbean.github.io/react-drag-component/) code located at `example/`
+- First check the code at `example/`
+- Then try to hack the React Component code at `example/source/`. 
+- The state related code is at:
+    - `example/source/index`
+    - `source/TabListContent/contextState`
+    - `source/TabTreeContent/contextState`
+- The Pointer Event related code is at: 
+    - `source/__lib__/pointerEventControl`
+    - `source/TabListContent/context`
+    - `source/TabTreeContent/context`
+- The CSS style is `postcss-cssnext` format.
 
-Then try to hack the React Component code at `example/source`. The CSS style is `postcss-cssnext` format.
 
-The state related code is at:
-* `source/`
-* `example/source/index`
+#### Required packages
 
-The Pointer Event related code is at: `source\__lib__\eventControl`
+Extra Packages required:
+
+- `hammerjs` for Pointer Event
+- `state-scheme` for Immutable Data
+- `react-context-store` for React Context

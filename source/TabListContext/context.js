@@ -1,12 +1,6 @@
 import { createContextStore, createContextProvider, createContextConnector, KeySwitch } from 'react-context-store'
-import { EVENT_GESTURE_TYPE, createEventControl } from '../__lib__'
-
-import {
-  ProviderScheme,
-  ActionCreatorMap,
-  reducerSelectCancel,
-  reducePreviewTabList
-} from './contextState'
+import { EVENT_GESTURE_TYPE, createPointerEventControl, reduceListLinkMove } from 'source/__lib__'
+import { ProviderScheme, ActionCreatorMap, reducerSelectCancel, reducePreviewTabList } from './contextState'
 
 const EVENT_INTENT_TYPE = {
   PREVIEW: 'PREVIEW',
@@ -41,12 +35,12 @@ const actionProcessorMap = {
   [CASE_TYPE.PREVIEW_START]: (action, state, emitIntent) => {
     const { eventControlState } = action.eventState
     const componentTab = state.componentTabList.find((component) => component.getWrappedRef().divElement.contains(eventControlState.elementOrigin))
-    if (componentTab.props.tab.isLock || componentTab.getWrappedRef().state.isEditing) return state
-    if (componentTab) {
-      state = { ...state, hoverTab: componentTab.props.tab }
-      state = reducePreviewTabList(state, eventControlState)
-      emitIntent(EVENT_INTENT_TYPE.PREVIEW, state)
-    }
+    if (!componentTab) return state
+    const { linkMap } = componentTab.props.data
+    if (linkMap[ componentTab.props.id ].isLock || componentTab.getWrappedRef().state.isEditing) return state
+    state = { ...state, hoverTabId: componentTab.props.id }
+    state = reducePreviewTabList(state, eventControlState)
+    emitIntent(EVENT_INTENT_TYPE.PREVIEW, state)
     return state
   },
   [CASE_TYPE.PREVIEW_UPDATE]: (action, state, emitIntent) => {
@@ -58,7 +52,6 @@ const actionProcessorMap = {
   [CASE_TYPE.PREVIEW_APPLY]: (action, state, emitIntent) => {
     const { eventControlState } = action.eventState
     state = reducePreviewTabList(state, eventControlState)
-    state = { ...state, componentTabList: state.previewTabList.map((tab) => state.componentTabList.find((component) => component.props.tab.id === tab.id)) }
     emitIntent(EVENT_INTENT_TYPE.APPLY, state)
     state = reducerSelectCancel(state)
     return state
@@ -73,13 +66,13 @@ function createTabListContextStore () {
       const eventCaseType = CASE_SWITCH.GET(
         action.eventSource,
         action.eventType || NULL,
-        state.hoverTab ? HAS_HOVER_TAB : NULL
+        state.hoverTabId ? HAS_HOVER_TAB : NULL
       )
       const actionProcessor = actionProcessorMap[ eventCaseType ]
       if (!actionProcessor) return state
       const emitIntent = (eventIntentType, storeState) => emit(eventIntentType, { ...action.eventState, eventIntentType, storeState })
       return actionProcessor(action, state, emitIntent)
-    },
+    }
   )
 }
 
@@ -87,25 +80,50 @@ const Provider = createContextProvider(STORE_NAME)
 
 const createTabListRootConnector = (WrappedComponent) => createContextConnector(STORE_NAME, WrappedComponent, {
   emitCallbackMap: {
-    [EVENT_INTENT_TYPE.PREVIEW]: (state, { storeState }) => {
-      const { previewTabList, hoverTab, hoverPosition } = storeState
-      return { ...state, previewTabList, hoverTab, hoverPosition }
+    [EVENT_INTENT_TYPE.PREVIEW]: (state, { storeState }, component) => {
+      const { componentTabList, insertData, hoverTabId, hoverPosition } = storeState
+      let indicatorData = null
+      if (insertData) {
+        const { insertIndex } = insertData
+        const { linkIdList } = component.props.tabListData
+        const indicatorPinWidthFix = linkIdList[ insertIndex ]
+          ? 0 // has tab
+          : 1 // last tab, not created
+        const insertTabId = linkIdList[ insertIndex - indicatorPinWidthFix ]
+        const indicatorTabComponent = componentTabList.find((component) => component.props.id === insertTabId)
+        const boundingRect = indicatorTabComponent.getWrappedRef().getContentRect()
+        const refElement = component.getWrappedRef().divElement
+        const refBoundingRect = refElement.getBoundingClientRect()
+        indicatorData = {
+          type: 'pin',
+          style: {
+            left: `${boundingRect.left - refBoundingRect.left + refElement.scrollLeft + boundingRect.width * indicatorPinWidthFix}px`,
+            top: `${boundingRect.top - refBoundingRect.top + refElement.scrollTop}px`,
+            height: `${boundingRect.height}px`
+          }
+        }
+      }
+
+      console.log(insertData)
+
+      return { ...state, indicatorData, hoverTabId, hoverPosition }
     },
     [EVENT_INTENT_TYPE.APPLY]: (state, { storeState }, component) => {
-      const { previewTabList } = storeState
-      component.props.doSetTabList(previewTabList)
-      return { ...state, previewTabList: null, hoverTab: null, hoverPosition: null }
+      const { hoverTabId, insertData } = storeState
+      const tabListData = insertData && reduceListLinkMove(component.props.tabListData, { id: hoverTabId, index: insertData.insertIndex })
+      tabListData && component.props.tabOperation.doSetTabListData(tabListData)
+      return { ...state, indicatorData: null, hoverTabId: null, hoverPosition: null }
     }
   },
   onMount: (component) => {
     const { dispatch } = component.store
 
     const dispatchEvent = (eventType) => (eventControlState, event) => {
-      event && event.preventDefault()
+      // event && event.preventDefault()
       dispatch({ eventSource: STORE_NAME, eventType, eventState: { eventControlState } })
     }
 
-    component.eventControl = createEventControl( // event from layer and widgets
+    component.eventControl = createPointerEventControl( // event from layer and widgets
       component.getWrappedRef().divElement,
       {
         onPanStart: dispatchEvent(EVENT_GESTURE_TYPE.PAN_START),
@@ -118,16 +136,16 @@ const createTabListRootConnector = (WrappedComponent) => createContextConnector(
   },
   onUnmount: (component) => {
     component.store.dispatch(ActionCreatorMap.ComponentTabListRootSet(null))
-    component.eventControl && component.eventControl.stop()
+    component.eventControl && component.eventControl.clear()
   }
 })
 
 const createTabConnector = (WrappedComponent) => createContextConnector(STORE_NAME, WrappedComponent, {
   onMount: (component) => {
-    component.batchUpdate(() => component.store.dispatch(ActionCreatorMap.ComponentTabListAdd(component)))
+    component.store.dispatch(ActionCreatorMap.ComponentTabListAdd(component))
   },
   onUnmount: (component) => {
-    component.batchUpdate(() => component.store.dispatch(ActionCreatorMap.ComponentTabListDelete(component)))
+    component.store.dispatch(ActionCreatorMap.ComponentTabListDelete(component))
   }
 })
 

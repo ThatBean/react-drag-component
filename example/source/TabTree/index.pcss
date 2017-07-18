@@ -1,0 +1,91 @@
+:root {
+  --tab-height: 32px;
+  --indent-left: 8px;
+  --indent-right: 8px;
+  --link-size: 1px;
+  --color-active: #f66;
+  --color-border: #ddd;
+  --color-icon: #ccc;
+  --color-text: #555;
+}
+
+:local(.tree-link) {
+  position: relative;
+  padding-left: var(--indent-right);
+  &::before,
+  &::after { content: ''; position: absolute; left: 0; background: var(--color-border); }
+  &::before { top: calc(0.5 * var(--tab-height)); width: var(--indent-right); height: var(--link-size); }
+  &::after { top: 0; bottom: 0; width: var(--link-size); height: 100%; }
+  &:last-child::after { height: calc(0.5 * var(--tab-height)); }
+}
+
+:local(.tree-link-group) {
+  padding-left: var(--indent-left);
+  &.hide { display: none; }
+}
+
+/* customize=========================================== */
+:local(.tab-tree-root) {
+  position: relative;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 240px;
+}
+
+:local(.indicator) {
+  position: absolute;
+  opacity: 0;
+  height: 1px;
+  transition-duration: 0.15s;
+  transition-timing-function: ease;
+  transition-property: width, height, top, left, opacity;
+  &.box { border: 2px dashed #f00; opacity: 0.4; }
+  &.pin { border: 1px solid #f00; opacity: 0.4; }
+}
+
+:local(.tab) {
+  cursor: default;
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding-right: 12px;
+  height: var(--tab-height);
+  color: var(--color-text);
+  transition: opacity 0.15s ease;
+  &:hover { background: #f9f9f9; }
+  &.select { color: var(--color-active); background: #f0f0f0; }
+  &.hover-source { opacity: 0.4; }
+  &.hover-preview { opacity: 0.4; background: var(--color-active); }
+
+  & .icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    font-size: 16px;
+    color: var(--color-icon);
+    &:hover { color: var(--color-active); }
+    &.leaf { font-size: 12px; pointer-events: none; }
+  }
+
+  & .tab-name { flex: 1; }
+
+  &:hover .edit-button-group .edit-button { display: block; color: var(--color-border); }
+  & .edit-button-group {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: var(--tab-height);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    & .edit-button {
+      cursor: pointer;
+      font-size: 16px;
+      padding: 0 2px;
+      display: none;
+      &:hover { opacity: 1; color: var(--color-active); }
+    }
+  }
+}

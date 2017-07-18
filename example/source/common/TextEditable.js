@@ -1,14 +1,11 @@
 import React, { PureComponent } from 'react'
 import PropTypes from 'prop-types'
 
-import { muteEvent } from './utils'
+import { muteEvent } from 'source/__lib__'
 
 import LocalClassName from './text-editable.pcss'
-const CSS_TEXT_EDITABLE = LocalClassName[ 'text-editable' ]
-
-function checkEnterKey (event) {
-  return (event.code === 'Enter' || event.keyCode === 13 || event.which === 13)
-}
+const CSS_TEXT_EDITABLE_DISPLAY = LocalClassName[ 'text-editable-display' ]
+const CSS_TEXT_EDITABLE_EDIT = LocalClassName[ 'text-editable-edit' ]
 
 /**
  * double click to edit, will auto trim newValue
@@ -24,7 +21,7 @@ class TextEditable extends PureComponent {
     placeholder: PropTypes.string,
     isDisabled: PropTypes.bool,
     isMultiLine: PropTypes.bool,
-    editOnMount: PropTypes.bool,
+    editOnMount: PropTypes.bool, // only useful on new component
     className: PropTypes.string
   }
 
@@ -42,64 +39,60 @@ class TextEditable extends PureComponent {
       this.endEdit()
     }
 
-    this.setElementRef = (ref) => (this.textElement = ref)
-    this.textElement = null
+    this.editOnMount = props.editOnMount
 
-    this.state = {
-      isEditing: false,
-      editingValue: ''
-    }
-  }
+    this.setElementRef = (ref) => (this.textareaElement = ref)
+    this.textareaElement = null
 
-  componentDidMount () {
-    if (this.props.editOnMount) this.startEdit()
-  }
-
-  componentWillReceiveProps (nextProps, nextState) {
-    if (nextProps.isDisabled && nextState.isEditing) this.setState({ isEditing: false })
-  }
-
-  componentDidUpdate (prevProps, prevState) {
-    const { isEditing } = this.state
-    if (isEditing !== prevState.isEditing && this.props.onEditStateChange) this.props.onEditStateChange({ isEditing })
+    this.state = { isEditing: false, editingValue: '' }
   }
 
   toggleEditing (isEditing) {
-    isEditing = Boolean(isEditing)
+    if (__DEV__ && typeof (isEditing) !== 'boolean') throw new Error(`[TextEditable] error isEditing type ${typeof (isEditing)}`)
     if (isEditing === this.state.isEditing) return
     this.setState({ isEditing, editingValue: this.props.value })
     isEditing && setTimeout(() => {
-      if (!this.textElement) return
-      this.textElement.focus()
-      // move cursor to the end of contents
-      const { value, scrollHeight, offsetHeight } = this.textElement
-      this.textElement.setSelectionRange(value.length, value.length)
-      this.textElement.scrollTop = scrollHeight - offsetHeight
+      if (!this.textareaElement) return
+      const { value, scrollHeight, offsetHeight } = this.textareaElement
+      this.textareaElement.focus()
+      this.textareaElement.setSelectionRange(0, value.length) // select all
+      this.textareaElement.scrollTop = scrollHeight - offsetHeight // scroll down
     }, 0)
+  }
+
+  componentDidMount () { this.editOnMount && this.startEdit() }
+
+  componentWillReceiveProps (nextProps, nextState) { nextProps.isDisabled && nextState.isEditing && this.setState({ isEditing: false }) }
+
+  componentDidUpdate (prevProps, prevState) {
+    const { onEditStateChange } = this.props
+    const { isEditing } = this.state
+    isEditing !== prevState.isEditing && onEditStateChange && onEditStateChange({ isEditing })
   }
 
   render () {
     const { value, placeholder, isDisabled, className } = this.props
     const { isEditing, editingValue } = this.state
-    if (isDisabled || !isEditing) {
-      return <div
-        ref={this.setElementRef}
-        className={`${CSS_TEXT_EDITABLE} div-display ${className || ''}`}
+    return (isDisabled || !isEditing)
+      ? <div
+        className={`${CSS_TEXT_EDITABLE_DISPLAY} ${className || ''}`}
         onDoubleClick={isDisabled ? null : this.startEdit}
-      >{value || placeholder}</div>
-    } else {
-      return <textarea
+      >
+        {value || placeholder}
+      </div>
+      : <textarea
         ref={this.setElementRef}
-        className={`${CSS_TEXT_EDITABLE} textarea-edit ${className || ''}`}
+        className={`${CSS_TEXT_EDITABLE_EDIT} ${className || ''}`}
         value={editingValue}
         placeholder={placeholder || ''}
         onChange={this.onEditUpdate}
         onKeyDown={this.onEditKeyPress}
         onBlur={this.onEditFinish}
       />
-    }
   }
 }
+
+const checkEnterKey = (event) => (event.code === 'Enter' || event.keyCode === 13 || event.which === 13)
 
 export {
   TextEditable

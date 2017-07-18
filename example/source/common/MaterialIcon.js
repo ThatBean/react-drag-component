@@ -1,13 +1,17 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 
-function MaterialIcon ({name, className, ...other}) {
-  return <i className={`material-icons ${className || ''}`} {...other}>{name || 'help'}</i>
-}
+const MaterialIcon = ({ name, className, onClick }) => <i
+  className={`material-icons ${className || ''}`}
+  onClick={onClick || null}
+>
+  {name || 'help'}
+</i>
 
 MaterialIcon.propTypes = {
-  name: PropTypes.string,
-  className: PropTypes.string
+  name: PropTypes.string.isRequired,
+  className: PropTypes.string,
+  onClick: PropTypes.func
 }
 
 export {

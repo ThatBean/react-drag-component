@@ -49,7 +49,7 @@ function setHammerManageDoubleTap (manager) {
   manager.get('tap').requireFailure('doubletap')
 }
 
-function createEventControl (element, { onTap, onDoubleTap, onPanStart, onPanMove, onPanEnd, onPanCancel }) {
+function createPointerEventControl (element, { onTap, onDoubleTap, onPanStart, onPanMove, onPanEnd, onPanCancel }) {
   const manager = new Hammer.Manager(element)
   if (onDoubleTap) setHammerManageDoubleTap(manager)
   else setHammerManage(manager)
@@ -58,41 +58,22 @@ function createEventControl (element, { onTap, onDoubleTap, onPanStart, onPanMov
   let eventControlState = initialState
 
   const doCallback = (callback, event) => {
-    // console.log(event && event.type, event && event.additionalEvent)
-    eventControlState = event
-      ? getEventControlState(eventControlState, event)
-      : initialState
+    eventControlState = event ? getEventControlState(eventControlState, event) : initialState
     callback && callback(eventControlState, event)
   }
 
   onTap && manager.on('tap', (event) => {
-    if (eventControlState !== initialState) {
-      console.warn('[EventControl] got tap with non-initialState')
-      eventControlState = initialState
-    }
     doCallback(onTap, event)
     eventControlState = initialState
   })
   onDoubleTap && manager.on('doubletap', (event) => {
-    if (eventControlState !== initialState) {
-      console.warn('[EventControl] got tap with non-initialState')
-      eventControlState = initialState
-    }
     doCallback(onDoubleTap, event)
     eventControlState = initialState
   })
   onPanStart && manager.on('panstart', (event) => {
-    if (eventControlState !== initialState) {
-      console.warn('[EventControl] got panstart with non-initialState')
-      eventControlState = initialState
-    }
     doCallback(onPanStart, event)
   })
   onPanMove && manager.on('panmove', (event) => {
-    if (eventControlState === initialState) {
-      console.warn('[EventControl] got missed panstart')
-      return doCallback(onPanStart, event) // TODO: Hammerjs: one 'panstart' will be missing, after manager.stop(true)
-    }
     doCallback(onPanMove, event)
   })
   onPanEnd && manager.on('panend', (event) => {
@@ -107,18 +88,17 @@ function createEventControl (element, { onTap, onDoubleTap, onPanStart, onPanMov
   })
 
   return {
-    stop: () => {
+    abort: () => { // stop current gesture
       manager.stop(true)
       onPanCancel && doCallback(onPanCancel)
     },
-    clear: () => {
+    clear: () => { // clean up for deletion
       manager.destroy()
-      onPanCancel && doCallback(onPanCancel)
     }
   }
 }
 
 export {
   EVENT_GESTURE_TYPE,
-  createEventControl
+  createPointerEventControl
 }

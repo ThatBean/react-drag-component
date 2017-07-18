@@ -1,6 +1,6 @@
 {
   "name": "react-drag-component",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "author": "thatbean",
   "license": "MIT",
   "repository": {
@@ -9,48 +9,47 @@
   },
   "main": "library/index.js",
   "scripts": {
-    "example": "cross-env NODE_ENV=production webpack -p --config config/example.conf.js",
-    "example-dev": "cross-env NODE_ENV=development webpack -w --config config/example.conf.js",
-    "build": "cross-env NODE_ENV=production webpack -p --config config/library.conf.js",
-    "build-dev": "cross-env NODE_ENV=development webpack -w --config config/library.conf.js"
+    "example": "cross-env NODE_ENV=production webpack --config config/example.conf.js",
+    "example-dev": "cross-env NODE_ENV=development webpack --watch --config config/example.conf.js",
+    "build": "cross-env NODE_ENV=production webpack --config config/library.conf.js",
+    "build-dev": "cross-env NODE_ENV=development webpack --watch --config config/library.conf.js",
+    "prepare": "npm run build"
   },
   "devDependencies": {
-    "babel-cli": "^6.24.1",
-    "babel-eslint": "^7.2.2",
-    "babel-loader": "^7.0.0-beta.1",
-    "babel-polyfill": "^6.23.0",
+    "babel-core": "^6.25.0",
+    "babel-eslint": "^7.2.3",
+    "babel-loader": "^7.1.1",
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-react": "^6.24.1",
     "babel-preset-stage-0": "^6.24.1",
-    "babel-plugin-transform-runtime": "^6.23.0",
-    "babel-require": "^1.0.1",
-    "cross-env": "^4.0.0",
-    "css-loader": "^0.28.0",
-    "eslint": "^3.19.0",
+    "cross-env": "^5.0.1",
+    "css-loader": "^0.28.4",
+    "eslint": "^4.3.0",
     "eslint-config-standard": "^10.2.1",
-    "eslint-config-standard-react": "^4.3.0",
-    "eslint-plugin-import": "^2.2.0",
-    "eslint-plugin-node": "^4.2.2",
+    "eslint-config-standard-react": "^5.0.0",
+    "eslint-plugin-import": "^2.7.0",
+    "eslint-plugin-node": "^5.1.1",
     "eslint-plugin-promise": "^3.5.0",
-    "eslint-plugin-react": "^6.10.3",
+    "eslint-plugin-react": "^7.1.0",
     "eslint-plugin-standard": "^3.0.1",
-    "extract-text-webpack-plugin": "^2.1.0",
-    "postcss": "^5.2.17",
-    "postcss-cssnext": "^2.10.0",
-    "postcss-loader": "^1.3.3",
-    "react": "^15.5.4",
-    "react-dom": "^15.5.4",
-    "webpack": "^2.4.1"
+    "extract-text-webpack-plugin": "^3.0.0",
+    "hammerjs": "^2.0.8",
+    "postcss": "^6.0.8",
+    "postcss-cssnext": "^3.0.2",
+    "postcss-loader": "^2.0.6",
+    "prop-types": "^15.5.10",
+    "react": "^15.6.1",
+    "react-context-store": "0.0.5",
+    "react-dom": "^15.6.1",
+    "state-scheme": "0.0.5",
+    "webpack": "^3.3.0"
   },
   "peerDependencies": {
-    "react": "*",
-    "react-dom": "*"
-  },
-  "dependencies": {
-    "babel-runtime": "^6.23.0",
     "hammerjs": "^2.0.8",
-    "prop-types": "^15.5.8",
-    "react-context-store": "0.0.3",
-    "state-scheme": "0.0.4"
+    "prop-types": "*",
+    "react": "*",
+    "react-context-store": "0.0.5",
+    "react-dom": "*",
+    "state-scheme": "0.0.5"
   }
 }

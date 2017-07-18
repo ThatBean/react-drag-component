@@ -1,11 +1,5 @@
-# source
+/.*
+/config
 /source
 /example
-
-# config files
-/config
-.gitignore
-.npmignore
-.babelrc
-.eslintrc
-.idea
+/react-drag-component*

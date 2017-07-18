@@ -1,13 +1,6 @@
 import { createContextStore, createContextProvider, createContextConnector, KeySwitch } from 'react-context-store'
-import { EVENT_GESTURE_TYPE, createEventControl } from '../__lib__'
-
-import {
-  ProviderScheme,
-  ActionCreatorMap,
-  reducerSelectCancel,
-  reducePreviewTabList,
-  reduceTreeLinkMove
-} from './contextState'
+import { EVENT_GESTURE_TYPE, createPointerEventControl, reduceTreeLinkMove } from 'source/__lib__'
+import { ProviderScheme, ActionCreatorMap, reducerSelectCancel, reducePreviewTabList } from './contextState'
 
 const EVENT_INTENT_TYPE = {
   PREVIEW: 'PREVIEW',
@@ -79,7 +72,7 @@ function createTabTreeContextStore () {
       if (!actionProcessor) return state
       const emitIntent = (eventIntentType, storeState) => emit(eventIntentType, { ...action.eventState, eventIntentType, storeState })
       return actionProcessor(action, state, emitIntent)
-    },
+    }
   )
 }
 
@@ -93,24 +86,24 @@ const createTabTreeRootConnector = (WrappedComponent) => createContextConnector(
       let indicatorData = null
       if (insertData) {
         const { insertParentTabId, insertIndex } = insertData
-        const { linkMap, childListMap, root } = component.props.tabTree
+        const { linkMap, childLinkIdListMap, rootId } = component.props.tabTreeData
         let indicatorType = null
         let indicatorTabId = null
         let indicatorPinHeightFix = null
-        if (!childListMap[ insertParentTabId ] || (root !== insertParentTabId && !linkMap[ insertParentTabId ].isExpand)) { // new first child, or not expand
+        if (!childLinkIdListMap[ insertParentTabId ] || (rootId !== insertParentTabId && !linkMap[ insertParentTabId ].isExpand)) { // new first child, or not expand
           indicatorType = 'box'
           indicatorTabId = insertParentTabId
-        } else if (!childListMap[ insertParentTabId ][ insertIndex ]) { // last tab, not created
+        } else if (!childLinkIdListMap[ insertParentTabId ][ insertIndex ]) { // last tab, not created
           indicatorType = 'pin'
-          indicatorTabId = childListMap[ insertParentTabId ][ insertIndex - 1 ]
+          indicatorTabId = childLinkIdListMap[ insertParentTabId ][ insertIndex - 1 ]
           indicatorPinHeightFix = 1
         } else { // has tab
           indicatorType = 'pin'
-          indicatorTabId = childListMap[ insertParentTabId ][ insertIndex ]
+          indicatorTabId = childLinkIdListMap[ insertParentTabId ][ insertIndex ]
           indicatorPinHeightFix = 0
         }
         const indicatorTabComponent = componentTabList.find((component) => component.props.id === indicatorTabId)
-        const boundingRect = indicatorTabComponent.getWrappedRef().divFullElement.getBoundingClientRect()
+        const boundingRect = indicatorTabComponent.getWrappedRef().getContainerRect()
         const refElement = component.getWrappedRef().divElement
         const refBoundingRect = refElement.getBoundingClientRect()
         indicatorData = {
@@ -133,8 +126,8 @@ const createTabTreeRootConnector = (WrappedComponent) => createContextConnector(
     },
     [ EVENT_INTENT_TYPE.APPLY ]: (state, { storeState }, component) => {
       const { hoverTabId, insertData } = storeState
-      const tabTree = insertData && reduceTreeLinkMove(component.props.tabTree, { key: hoverTabId, index: insertData.insertIndex, parent: insertData.insertParentTabId })
-      tabTree && setTimeout(() => component.props.doSetTabTree(tabTree))
+      const tabTreeData = insertData && reduceTreeLinkMove(component.props.tabTreeData, { id: hoverTabId, index: insertData.insertIndex, parentId: insertData.insertParentTabId })
+      tabTreeData && setTimeout(() => component.props.tabOperation.doSetTabTreeData(tabTreeData)) // if move child tab up to rootLevel, new element is not exist now
       return { ...state, indicatorData: null, hoverTabId: null, hoverPosition: null }
     }
   },
@@ -146,7 +139,7 @@ const createTabTreeRootConnector = (WrappedComponent) => createContextConnector(
       dispatch({ eventSource: STORE_NAME, eventType, eventState: { eventControlState } })
     }
 
-    component.eventControl = createEventControl( // event from layer and widgets
+    component.eventControl = createPointerEventControl( // event from layer and widgets
       component.getWrappedRef().divElement,
       {
         onPanStart: dispatchEvent(EVENT_GESTURE_TYPE.PAN_START),
@@ -159,7 +152,7 @@ const createTabTreeRootConnector = (WrappedComponent) => createContextConnector(
   },
   onUnmount: (component) => {
     component.store.dispatch(ActionCreatorMap.ComponentTabTreeRootSet(null))
-    component.eventControl && component.eventControl.stop()
+    component.eventControl && component.eventControl.clear()
   }
 })
 

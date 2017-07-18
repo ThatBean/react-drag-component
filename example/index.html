@@ -10,31 +10,47 @@
     <script src="index.js"></script>
 </head>
 <body>
-<div class="panel horizontal">
-    <div id="root-tab-tree" class="preview"></div>
-    <div class="log">
-        <button id="button-tab-tree">getTabTreeState</button>
-        <pre id="log-tab-tree"></pre>
+<div id="root">
+    <div class="panel horizontal">
+        <div id="root-tab-tree" class="preview"></div>
+        <pre id="log-tab-tree" class="log"></pre>
+    </div>
+    <div class="panel vertical">
+        <div id="root-tab-list" class="preview"></div>
+        <pre id="log-tab-list" class="log"></pre>
     </div>
 </div>
-<div class="panel vertical">
-    <div id="root-tab-list" class="preview"></div>
-    <div class="log">
-        <button id="button-tab-list">getTabListState</button>
-        <pre id="log-tab-list"></pre>
-    </div>
-</div>
-<script>
-  function wireElement ({ renderExample, getState }, buttonElement, logElement) {
-    buttonElement.addEventListener('click', () => { logElement.innerHTML = JSON.stringify(getState(), null, ' ') })
-    renderExample(getState())
-  }
-
-  const { init } = ReactDragComponent
-  const { tabTree, tabList } = init(document.querySelector('#root-tab-tree'), document.querySelector('#root-tab-list'))
-  wireElement(tabTree, document.querySelector('#button-tab-tree'), document.querySelector('#log-tab-tree'))
-  wireElement(tabList, document.querySelector('#button-tab-list'), document.querySelector('#log-tab-list'))
-  window.DEBUG = { tabTree, tabList }
-</script>
 </body>
+<script>
+  const customKeySet = new Set([ 'contentList', 'linkMap', 'childLinkIdListMap' ])
+  const customStringify = (value) => JSON.stringify(
+    value,
+    (key, value) => customKeySet.has(key)
+      ? Array.isArray(value)
+        ? value.map((v) => JSON.stringify(v))
+        : Object.keys(value).reduce((o, key) => {
+          o[ key ] = JSON.stringify(value[ key ])
+          return o
+        }, {})
+      : value,
+    '  '
+  )
+    .replace(/\\\\/g, `\\`).replace(/\\"/g, `"`)
+    .replace(/"{/g, `{ `).replace(/}"/g, ` }`)
+    .replace(/"\[/g, `[ `).replace(/]"/g, ` ]`)
+
+  const wireElement = ({ getState, setStateAndRender }, logElement) => setStateAndRender({
+    onChange: () => { logElement.innerHTML = customStringify(getState()) }
+  })
+
+  const { tabTreeStore, tabListStore } = window.ReactDragComponent.init(
+    document.querySelector('#root-tab-tree'),
+    document.querySelector('#root-tab-list')
+  )
+
+  wireElement(tabTreeStore, document.querySelector('#log-tab-tree'))
+  wireElement(tabListStore, document.querySelector('#log-tab-list'))
+
+  window.DEBUG = { tabTreeStore, tabListStore }
+</script>
 </html>

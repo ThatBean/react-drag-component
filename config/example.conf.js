@@ -2,9 +2,7 @@ const NodeModulePath = require('path')
 const config = require('./common.conf')
 
 module.exports = Object.assign(config, {
-  entry: {
-    'index': [ 'babel-polyfill', './example/source/index' ]
-  },
+  entry: { 'index': [ './example/source/index' ] },
   output: {
     path: NodeModulePath.join(__dirname, '../example/'),
     filename: '[name].js',
