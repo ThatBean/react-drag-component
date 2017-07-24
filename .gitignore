@@ -37,9 +37,15 @@ jspm_packages
 .node_repl_history
 
 # WebStorm config
-.idea
+/.idea
 
 # generated
 /library
-/example/index.js
-/example/index.css
+/react-drag-component*
+
+# source
+/.*
+/package*
+/config
+/source
+/example/source
