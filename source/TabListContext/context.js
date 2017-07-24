@@ -103,9 +103,6 @@ const createTabListRootConnector = (WrappedComponent) => createContextConnector(
           }
         }
       }
-
-      console.log(insertData)
-
       return { ...state, indicatorData, hoverTabId, hoverPosition }
     },
     [EVENT_INTENT_TYPE.APPLY]: (state, { storeState }, component) => {
